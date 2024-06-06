@@ -16,6 +16,7 @@ const DragImage = () => {
 
   return (
     <div
+      id='imageDrag'
       ref={drag}
       style={{
         width: '150px',

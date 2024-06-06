@@ -8,13 +8,15 @@ import DragImage from './components/image/image.jsx';
 import './App.css';
 
 function App() {
-  const [nodes, setNodes] = useState([{ id: 'root', children: [] }]);
+  const [nodes, setNodes] = useState([
+    { id: 'root', type: 'div', children: [] },
+  ]);
 
-  const updateNodes = (id, newName) => {
+  const updateNodes = (item) => {
     setNodes((prevNodes) => {
       const newNodes = JSON.parse(JSON.stringify(prevNodes));
       const rootNode = newNodes[0];
-      rootNode.children.push({ id, name: newName, children: [] });
+      rootNode.children.push(item);
       return newNodes;
     });
   };
@@ -23,12 +25,12 @@ function App() {
     <DndProvider backend={HTML5Backend}>
       <div className='App'>
         <div className='left'>
-          <DropZone onDrop={updateNodes} />
           <DragButton />
           <DragImage />
+          <DropZone onDrop={updateNodes} />
         </div>
         <div className='right'>
-          <DomTree nodes={nodes} />
+          <DomTree nodes={nodes} setNodes={setNodes} />
         </div>
       </div>
     </DndProvider>
