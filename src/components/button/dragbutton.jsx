@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useDrag } from 'react-dnd';
 
-const DragButton = ({ id, content }) => {
+const DragButton = ({ id, initialContent }) => {
+  const [content, setContent] = useState(initialContent); // Use state for content
+
   const [{ isDragging }, drag] = useDrag(() => ({
     type: 'button',
     item: { id, type: 'button', content },
