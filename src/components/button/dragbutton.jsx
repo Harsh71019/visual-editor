@@ -1,34 +1,24 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useDrag } from 'react-dnd';
 
-const DragButton = () => {
-  const [name, setName] = useState('Drag me');
-
+const DragButton = ({ id, content }) => {
   const [{ isDragging }, drag] = useDrag(() => ({
     type: 'button',
-    item: { id: `button-${Date.now()}`, type: 'button', name },
+    item: { id, type: 'button', content },
     collect: (monitor) => ({
       isDragging: !!monitor.isDragging(),
     }),
   }));
 
-  const handleChange = (e) => {
-    setName(e.target.value);
+  const style = {
+    opacity: isDragging ? 0.5 : 1,
+    cursor: 'move',
   };
 
   return (
-    <input
-      type='text'
-      value={name}
-      ref={drag}
-      onChange={handleChange}
-      style={{
-        padding: '10px',
-        margin: '20px',
-        cursor: 'grab',
-        opacity: isDragging ? 0.5 : 1,
-      }}
-    />
+    <button ref={drag} style={style}>
+      {content}
+    </button>
   );
 };
 

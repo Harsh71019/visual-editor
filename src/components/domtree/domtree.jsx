@@ -1,45 +1,31 @@
 import React from 'react';
 
-const renderNode = (node, handleEdit) => (
-  <li key={node.id}>
-    {node.type === 'button' ? (
-      <div>
-        <span>Button: </span>
-        <input
-          type='text'
-          value={node.name}
-          onChange={(e) => handleEdit(node.id, e.target.value)}
-        />
+const renderNode = (node) => {
+  if (node.type === 'div') {
+    return (
+      <div key={node.props.className}>
+        <div>{node.props.className}</div>
+        <div style={{ paddingLeft: '20px' }}>
+          {node.props.children.map((child, index) => renderNode(child))}
+        </div>
       </div>
-    ) : node.type === 'image' ? (
-      <div>Image</div>
-    ) : null}
-    {node.children && node.children.length > 0 && (
-      <ul>{node.children.map((child) => renderNode(child, handleEdit))}</ul>
-    )}
-  </li>
-);
+    );
+  }
+  return (
+    <div key={node.props.content || node.props.className}>
+      {node.type === 'button' && <div>button: {node.props.content}</div>}
+      {node.type === 'image' && <div>image</div>}
+      {node.type === 'h1' && <div>h1: {node.props.content}</div>}
+      {node.type === 'p' && <div>p: {node.props.content}</div>}
+    </div>
+  );
+};
 
-const DomTree = ({ nodes, setNodes }) => {
-  const handleEdit = (id, newName) => {
-    const updateNode = (nodes) => {
-      for (let node of nodes) {
-        if (node.id === id) {
-          node.name = newName;
-        } else if (node.children.length > 0) {
-          updateNode(node.children);
-        }
-      }
-    };
-    const newNodes = [...nodes];
-    updateNode(newNodes);
-    setNodes(newNodes);
-  };
-
+const DomTree = ({ nodes }) => {
   return (
     <div>
-      <h3>DOM Tree</h3>
-      <ul>{nodes.map((node) => renderNode(node, handleEdit))}</ul>
+      <h2>DOM Tree</h2>
+      <div>{nodes.map((node, index) => renderNode(node))}</div>
     </div>
   );
 };

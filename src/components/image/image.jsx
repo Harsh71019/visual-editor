@@ -14,21 +14,17 @@ const DragImage = () => {
     }),
   }));
 
-  return (
-    <div
-      id='imageDrag'
-      ref={drag}
-      style={{
-        width: '150px',
-        height: '150px',
-        backgroundImage: 'url(https://via.placeholder.com/150)',
-        backgroundSize: 'cover',
-        cursor: 'grab',
-        margin: '20px',
-        opacity: isDragging ? 0.5 : 1,
-      }}
-    />
-  );
+  const style = {
+    width: '150px',
+    height: '150px',
+    backgroundImage: 'url(https://via.placeholder.com/150)',
+    backgroundSize: 'cover',
+    cursor: 'grab',
+    margin: '20px',
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return <div id='imageDrag' ref={drag} style={style} />;
 };
 
 export default DragImage;
