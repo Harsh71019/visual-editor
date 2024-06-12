@@ -18,11 +18,7 @@ const DraggableElement = ({ id, type, children, isDragging }) => {
     margin: '4px 0',
   };
 
-  return (
-    <div ref={drag} style={style}>
-      {children}
-    </div>
-  );
+  return <>{React.cloneElement(children, { ref: drag, style })}</>;
 };
 
 const renderElement = (element, onHover, onLeave) => {
