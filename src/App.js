@@ -56,77 +56,74 @@ function App() {
     const newJson = { ...json };
     const elements = newJson.props.children[0].props.children;
 
-    // Find the index of the moved element
-    const index = elements.findIndex((el) => el.id === id);
-    const [movedElement] = elements.splice(index, 1);
+    // Check if the dragged item is from the sidebar (type 'button' or 'image')
+    if (type === 'button' || type === 'image') {
+      // Generate a unique ID for the new element
+      const newId = generateUniqueId(type);
 
-    // Find the index where the moved element should be inserted
-    let insertIndex = elements.findIndex((el) => {
-      const elDom = document.getElementById(el.id);
-      if (elDom) {
-        const elRect = elDom.getBoundingClientRect();
-        return offsetY < elRect.top;
-      }
-      return false;
-    });
+      // Create a new element based on the type
+      const newElement =
+        type === 'button'
+          ? {
+              type: 'button',
+              props: {
+                id: newId,
+                content: content || 'New Button',
+                csEditable: true,
+              },
+            }
+          : {
+              type: 'image',
+              props: {
+                id: newId,
+                src: src || 'https://via.placeholder.com/150',
+                csEditable: true,
+              },
+            };
 
-    let newElement;
-    if (type === 'button') {
-      // Check if the button is already present
-      const existingButtonIndex = elements.findIndex(
-        (el) => el.type === 'button'
-      );
-      if (existingButtonIndex !== -1) {
-        elements.splice(existingButtonIndex, 1); // Remove existing button
-        insertIndex -= 1; // Adjust insertIndex if removing an existing button
-      }
-      // Generate a unique ID for the button
-      const buttonId = `button-${Date.now()}`;
-      newElement = {
-        type: 'button',
-        props: {
-          id: buttonId,
-          content: content || 'New Button',
-          csEditable: true,
-        },
-      };
-    } else if (type === 'image') {
-      // Check if the image is already present
-      const existingImageIndex = elements.findIndex(
-        (el) => el.type === 'image'
-      );
-      if (existingImageIndex !== -1) {
-        elements.splice(existingImageIndex, 1); // Remove existing image
-        insertIndex -= 1; // Adjust insertIndex if removing an existing image
-      }
-      // Generate a unique ID for the image
-      const imageId = `image-${Date.now()}`;
-      newElement = {
-        type: 'image',
-        props: {
-          id: imageId,
-          src: src || 'https://via.placeholder.com/150',
-          csEditable: true,
-        },
-      };
-    }
+      // Calculate the insert index based on offsetY
+      let insertIndex = elements.findIndex((el) => {
+        const elDom = document.getElementById(el.props.id);
+        if (elDom) {
+          const elRect = elDom.getBoundingClientRect();
+          return offsetY < elRect.top;
+        }
+        return false;
+      });
 
-    // Insert the moved element at the new position
-    if (insertIndex === -1) {
-      elements.push(movedElement);
-    } else {
-      elements.splice(insertIndex, 0, movedElement);
-    }
-
-    // Insert the new element if applicable
-    if (newElement) {
+      // If insertIndex is -1, the new element should be at the end
       if (insertIndex === -1) {
         elements.push(newElement);
       } else {
         elements.splice(insertIndex, 0, newElement);
       }
+    } else {
+      // Find the index of the moved element
+      const index = elements.findIndex((el) => el.props.id === id);
+      if (index === -1) return; // Return if element not found
+
+      // Remove the moved element from the array
+      const [movedElement] = elements.splice(index, 1);
+
+      // Calculate the insert index based on offsetY
+      let insertIndex = elements.findIndex((el) => {
+        const elDom = document.getElementById(el.props.id);
+        if (elDom) {
+          const elRect = elDom.getBoundingClientRect();
+          return offsetY < elRect.top;
+        }
+        return false;
+      });
+
+      // If insertIndex is -1, the moved element should be at the end
+      if (insertIndex === -1) {
+        elements.push(movedElement);
+      } else {
+        elements.splice(insertIndex, 0, movedElement);
+      }
     }
 
+    // Update state with the new JSON structure
     setJson(newJson);
   };
 
@@ -134,12 +131,12 @@ function App() {
     const newJson = { ...json };
     const elements = newJson.props.children[0].props.children;
 
-    const element = elements.find((el) => el.id === id);
+    // Find the element by ID and update its content
+    const element = elements.find((el) => el.props.id === id);
     if (element) {
       element.props.content = newText;
+      setJson(newJson); // Update state with the modified JSON structure
     }
-
-    setJson(newJson);
   };
 
   const generateUniqueId = (prefix) => {
@@ -148,23 +145,34 @@ function App() {
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <div>
-        <h2>Drag Elements</h2>
-        <DragButton
-          id={generateUniqueId('button')}
-          initialContent='New button'
-        />
-        <DragImage id={generateUniqueId('image')} />
-      </div>
-      <div className='App'>
-        <div className='left'>
+      <div className='d-flex container'>
+        {/* Sidebar with draggable elements */}
+        <div className='col-2'>
+          <h2>Drag Elements</h2>
+          {/* DragButton component */}
+          <DragButton
+            id={generateUniqueId('button')}
+            initialContent='New button'
+            onDrop={(content) => reorderElements(null, null, 'button', content)}
+          />
+          {/* DragImage component */}
+          <DragImage
+            id={generateUniqueId('image')}
+            onDrop={(src) => reorderElements(null, null, 'image', null, src)}
+          />
+        </div>
+
+        {/* Main content area with DropZone */}
+        <div className='col-8'>
           <DropZone
             json={json}
             onReorder={reorderElements}
             onChange={handleChange}
           />
         </div>
-        <div className='right'>
+
+        {/* Sidebar with DOM Tree */}
+        <div className='col-2'>
           <DomTree nodes={json.props.children} />
         </div>
       </div>
