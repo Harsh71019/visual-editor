@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useDrop, useDrag } from 'react-dnd';
+import HighlightWrapper from '../highlight/HighlightWrapper';
 
 const DraggableElement = ({ id, type, children, isDragging }) => {
   const [{ isDrag }, drag] = useDrag(() => ({
@@ -13,15 +14,21 @@ const DraggableElement = ({ id, type, children, isDragging }) => {
   const style = {
     opacity: isDragging ? 0.5 : 1,
     cursor: 'move',
-    border: isDragging ? '2px solid blue' : '1px dashed gray',
     padding: '4px',
     margin: '4px 0',
   };
 
-  return <>{React.cloneElement(children, { ref: drag, style })}</>;
+  return (
+    <>
+      {React.cloneElement(children, {
+        ref: drag,
+        style,
+      })}
+    </>
+  );
 };
 
-const renderElement = (element, onHover, onLeave) => {
+const renderElement = (element, onHover, onLeave, onClick) => {
   switch (element.type) {
     case 'div':
       return (
@@ -35,25 +42,49 @@ const renderElement = (element, onHover, onLeave) => {
               onMouseEnter={() => onHover(child.id)}
               onMouseLeave={() => onLeave(child.id)}
             >
-              {renderElement(child, onHover, onLeave)}
+              {renderElement(child, onHover, onLeave, onClick)}
             </DraggableElement>
           ))}
         </div>
       );
     case 'h1':
-      return <h1 style={element.props.style}>{element.props.content}</h1>;
+      return (
+        <h1
+          id={element.props.id}
+          style={element.props.style}
+          onClick={() => onClick(element.props.id)}
+        >
+          {element.props.content}
+        </h1>
+      );
     case 'p':
-      return <p style={element.props.style}>{element.props.content}</p>;
+      return (
+        <p
+          id={element.props.id}
+          style={element.props.style}
+          onClick={() => onClick(element.props.id)}
+        >
+          {element.props.content}
+        </p>
+      );
     case 'button':
       return (
-        <button style={element.props.style}>{element.props.content}</button>
+        <button
+          id={element.props.id}
+          style={element.props.style}
+          onClick={() => onClick(element.props.id)}
+        >
+          {element.props.content}
+        </button>
       );
     case 'image':
       return (
         <img
+          id={element.props.id}
           src={element.props.src}
           alt='Draggable'
           style={element.props.style}
+          onClick={() => onClick(element.props.id)}
         />
       );
     default:
@@ -62,6 +93,7 @@ const renderElement = (element, onHover, onLeave) => {
 };
 
 const DropZone = ({ json, onReorder }) => {
+  const [selectedElementId, setSelectedElementId] = useState(null);
   const [hoveredElement, setHoveredElement] = useState(null);
 
   const [{ isOver }, drop] = useDrop({
@@ -89,12 +121,73 @@ const DropZone = ({ json, onReorder }) => {
     }
   };
 
+  const handleElementClick = (id) => {
+    setSelectedElementId(id);
+  };
+
   const updatedJson = { ...json };
-  updatedJson.props.children[0].props.children =
-    updatedJson.props.children[0].props.children.map((child) => ({
-      ...child,
-      isDragging: hoveredElement === child.id,
-    }));
+
+  const renderJsonElement = (element) => {
+    switch (element.type) {
+      case 'div':
+        return (
+          <div className={element.props.className} style={element.props.style}>
+            {element.props.children.map((child, index) => (
+              <DraggableElement
+                key={index}
+                id={child.props.id} // Assuming child.props.id is used to identify elements uniquely
+                type={child.type}
+                isDragging={child.isDragging}
+              >
+                {renderJsonElement(child)}
+              </DraggableElement>
+            ))}
+          </div>
+        );
+      case 'h1':
+        return (
+          <h1
+            id={element.props.id}
+            style={element.props.style}
+            onClick={() => handleElementClick(element.props.id)}
+          >
+            {element.props.content}
+          </h1>
+        );
+      case 'p':
+        return (
+          <p
+            id={element.props.id}
+            style={element.props.style}
+            onClick={() => handleElementClick(element.props.id)}
+          >
+            {element.props.content}
+          </p>
+        );
+      case 'button':
+        return (
+          <button
+            id={element.props.id}
+            style={element.props.style}
+            onClick={() => handleElementClick(element.props.id)}
+          >
+            {element.props.content}
+          </button>
+        );
+      case 'image':
+        return (
+          <img
+            id={element.props.id}
+            src={element.props.src}
+            alt='Draggable'
+            style={element.props.style}
+            onClick={() => handleElementClick(element.props.id)}
+          />
+        );
+      default:
+        return null;
+    }
+  };
 
   return (
     <div
@@ -105,9 +198,13 @@ const DropZone = ({ json, onReorder }) => {
         height: '900px',
         border: '1px solid black',
         margin: '20px',
+        position: 'relative', // Ensure relative positioning for HighlightWrapper
       }}
     >
-      {renderElement(updatedJson, handleHover, handleLeave)}
+      {renderJsonElement(updatedJson)}
+      {selectedElementId && (
+        <HighlightWrapper selectedElementId={selectedElementId} />
+      )}
     </div>
   );
 };

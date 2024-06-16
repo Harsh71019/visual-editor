@@ -65,3 +65,7 @@
   padding: 4px;
   margin: 4px 0;
 }
+
+#dropZone {
+  position: relative; /* Relative positioning for absolute child elements */
+}
